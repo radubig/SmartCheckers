@@ -391,14 +391,22 @@ def PlayerMove(table: Table, player: int):
 if __name__ == '__main__':
     gamemode = 0
     while True:
-        gamemode = int(input('Selecteaza modul de joc:\n1. Player vs Computer\n2. Player vs Player\n3. Computer vs Computer\n'))
+        try:
+            gamemode = int(input('Selecteaza modul de joc:\n1. Player vs Computer\n2. Player vs Player\n3. Computer vs Computer\n'))
+        except ValueError:
+            print('Trebuie sa tastezi o cifra... 💀')
+            continue
         if gamemode in [1, 2, 3]:
             break
         print('Input invalid!')
 
     selected_algorithm = 0
     while True:
-        selected_algorithm = int(input('Selecteaza algoritmul:\n1. Min-Max\n'))
+        try:
+            selected_algorithm = int(input('Selecteaza algoritmul:\n1. Min-Max\n'))
+        except ValueError:
+            print('Trebuie sa tastezi o cifra... 💀')
+            continue
         if selected_algorithm in [1]:
             break
         print('Input invalid!')
@@ -406,7 +414,11 @@ if __name__ == '__main__':
     depth = 0
     if gamemode in [1, 3]:
         while True:
-            depth = int(input('Selecteaza dificultatea (adancimea arborelui de decizie) 1...10: '))
+            try:
+                depth = int(input('Selecteaza dificultatea (adancimea arborelui de decizie) 1...10: '))
+            except ValueError:
+                print('Trebuie sa tastezi un numar intreg... ♿')
+                continue
             if depth > 10:
                 print('Adancimea este prea mare! Daca ai un calculator puternic probabil poti sa scoti aceasta limitare din cod, dar realistic vorbind o sa iti ia calculatorul foc pana se termina de calculat urmatoarea mutare a calculatorului.')
             elif depth < 1:
