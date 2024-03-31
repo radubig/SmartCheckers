@@ -1,0 +1,27 @@
+# Cerinte
+
+- [x] Scopul jocului
+  - [x] Alegerea unui algoritm
+  - [x] Alegerea dificultatii (depth)
+  - [x] Alegerea jucatorului care incepe (MAX sau MIN)
+  - [x] Stare initiala
+  - [x] Mutare jucator
+- [x] Afisari
+  - [x] Input gresit mutare
+  - [x] Al cui este randul
+  - [x] Starea curenta
+  - [x] Castigator, timp de joc
+- [x] Generarea succesorilor
+- [x] Testarea starii finale + castigator
+- [ ] 2 moduri diferite de estimare a scorului (1/2)
+- [x] Min-Max / Alpha-Beta
+- [ ] A* / IDA*
+- [ ] Retele Bayesiene
+- [ ] Claritatea codului
+  - [ ] Parametrii invalizi
+- [ ] Comentarii
+  - [ ] Documentare functii
+  - [ ] Documentare algoritm de generare a mutarilor
+  - [ ] Explicare estimare scor
+  - [ ] Explicare eursitica MAX
+- [ ] Chestii bonus

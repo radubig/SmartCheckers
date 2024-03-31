@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime
 
 
 class TerminalColors:
@@ -41,6 +42,9 @@ class Table:
                 prt += cell + ' '
             prt += '\n'
         return prt
+
+    def __eq__(self, other):
+        return self.config == other.config
 
     # Calculate the advantage of pieces of player 1
     def evaluatePlayerAdvantage(self):
@@ -188,33 +192,59 @@ class GameGraph:
         self.starting_table = Table(player1_sym, player1king_sym, player2_sym, player2king_sym, empty_sym, starting_config)
 
     @staticmethod
-    def getJumpSuccessors(table: Table, player: int):
-        succ = list[Table]()
-        for i in range(8):
-            for j in range(8):
-                if player == 1:
-                    if table.config[i][j] in [table.player1_sym, table.player1king_sym]:
-                        if Move.jumpUpperLeft(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
-                            succ.append(Move.jumpUpperLeft(table, i, j, [table.player2_sym, table.player2king_sym]))
-                        if Move.jumpUpperRight(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
-                            succ.append(Move.jumpUpperRight(table, i, j, [table.player2_sym, table.player2king_sym]))
-                        if table.config[i][j] == table.player1king_sym:
-                            if Move.jumpLowerLeft(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
-                                succ.append(Move.jumpLowerLeft(table, i, j, [table.player2_sym, table.player2king_sym]))
-                            if Move.jumpLowerRight(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
-                                succ.append(Move.jumpLowerRight(table, i, j, [table.player2_sym, table.player2king_sym]))
+    def getJumpSuccessors(table: Table, player: int, capturingPiece=None):
+        succ = []
+        if capturingPiece is None:
+            for i in range(8):
+                for j in range(8):
+                    if player == 1:
+                        if table.config[i][j] in [table.player1_sym, table.player1king_sym]:
+                            if Move.jumpUpperLeft(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                                succ.append((Move.jumpUpperLeft(table, i, j, [table.player2_sym, table.player2king_sym]), (i-2, j-2)))
+                            if Move.jumpUpperRight(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                                succ.append((Move.jumpUpperRight(table, i, j, [table.player2_sym, table.player2king_sym]), (i-2, j+2)))
+                            if table.config[i][j] == table.player1king_sym:
+                                if Move.jumpLowerLeft(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                                    succ.append((Move.jumpLowerLeft(table, i, j, [table.player2_sym, table.player2king_sym]), (i+2, j-2)))
+                                if Move.jumpLowerRight(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                                    succ.append((Move.jumpLowerRight(table, i, j, [table.player2_sym, table.player2king_sym]), (i+2, j+2)))
+                    elif player == 2:
+                        if table.config[i][j] in [table.player2_sym, table.player2king_sym]:
+                            if Move.jumpLowerLeft(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                                succ.append((Move.jumpLowerLeft(table, i, j, [table.player1_sym, table.player1king_sym]), (i+2, j-2)))
+                            if Move.jumpLowerRight(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                                succ.append((Move.jumpLowerRight(table, i, j, [table.player1_sym, table.player1king_sym]), (i+2, j+2)))
+                            if table.config[i][j] == table.player2king_sym:
+                                if Move.jumpUpperLeft(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                                    succ.append((Move.jumpUpperLeft(table, i, j, [table.player1_sym, table.player1king_sym]), (i-2, j-2)))
+                                if Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                                    succ.append((Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]), (i-2, j+2)))
 
-                elif player == 2:
-                    if table.config[i][j] in [table.player2_sym, table.player2king_sym]:
-                        if Move.jumpLowerLeft(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
-                            succ.append(Move.jumpLowerLeft(table, i, j, [table.player1_sym, table.player1king_sym]))
-                        if Move.jumpLowerRight(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
-                            succ.append(Move.jumpLowerRight(table, i, j, [table.player1_sym, table.player1king_sym]))
-                        if table.config[i][j] == table.player2king_sym:
-                            if Move.jumpUpperLeft(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
-                                succ.append(Move.jumpUpperLeft(table, i, j, [table.player1_sym, table.player1king_sym]))
-                            if Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
-                                succ.append(Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]))
+        else:
+            i = capturingPiece[0]
+            j = capturingPiece[1]
+            if player == 1:
+                if table.config[i][j] in [table.player1_sym, table.player1king_sym]:
+                    if Move.jumpUpperLeft(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                        succ.append((Move.jumpUpperLeft(table, i, j, [table.player2_sym, table.player2king_sym]), (i-2, j-2)))
+                    if Move.jumpUpperRight(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                        succ.append((Move.jumpUpperRight(table, i, j, [table.player2_sym, table.player2king_sym]), (i-2, j+2)))
+                    if table.config[i][j] == table.player1king_sym:
+                        if Move.jumpLowerLeft(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                            succ.append((Move.jumpLowerLeft(table, i, j, [table.player2_sym, table.player2king_sym]), (i+2, j-2)))
+                        if Move.jumpLowerRight(table, i, j, [table.player2_sym, table.player2king_sym]) is not None:
+                            succ.append((Move.jumpLowerRight(table, i, j, [table.player2_sym, table.player2king_sym]), (i+2, j+2)))
+            elif player == 2:
+                if table.config[i][j] in [table.player2_sym, table.player2king_sym]:
+                    if Move.jumpLowerLeft(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                        succ.append((Move.jumpLowerLeft(table, i, j, [table.player1_sym, table.player1king_sym]), (i+2, j-2)))
+                    if Move.jumpLowerRight(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                        succ.append((Move.jumpLowerRight(table, i, j, [table.player1_sym, table.player1king_sym]), (i+2, j+2)))
+                    if table.config[i][j] == table.player2king_sym:
+                        if Move.jumpUpperLeft(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                            succ.append((Move.jumpUpperLeft(table, i, j, [table.player1_sym, table.player1king_sym]), (i-2, j-2)))
+                        if Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]) is not None:
+                            succ.append((Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]), (i-2, j+2)))
         return succ
 
     @staticmethod
@@ -252,22 +282,23 @@ class GameGraph:
         succ = GameGraph.getJumpSuccessors(table, player)
         if len(succ) == 0:
             succ = GameGraph.getMoveSuccessors(table, player)
-            if len(succ) == 0:
-                emptyTable = copy.deepcopy(table)
-                emptyTable.config = [['#' for _ in range(8)] for _ in range(8)]
-                return [emptyTable]
         else:
             foundCapture = True
             while foundCapture:
-                newsucc = list[Table]()
-                for s in succ:
-                    n = GameGraph.getJumpSuccessors(s, player)
+                newsucc = []
+                for s, piece in succ:
+                    n = GameGraph.getJumpSuccessors(s, player, piece)
                     if len(n) != 0:
                         newsucc.extend(n)
                 if len(newsucc) == 0:
                     foundCapture = False
                 else:
                     succ = newsucc
+
+            newsucc = []
+            for s, _ in succ:
+                newsucc.append(s)
+            succ = newsucc
         return succ
 
 
@@ -277,21 +308,121 @@ def minimax(node: Table, depth: int, player: int):
         return playerAdvantage
     if player == 1:
         value = -1005
-        for child in GameGraph.getSuccessors(node, player):
+        successors = GameGraph.getSuccessors(node, player)
+        if len(successors) == 0:
+            return -1000
+        for child in successors:
             evaluation = minimax(child, depth - 1, 2)
             if evaluation > value:
                 value = evaluation
         return value
     else:
         value = 1005
-        for child in GameGraph.getSuccessors(node, player):
+        successors = GameGraph.getSuccessors(node, player)
+        if len(successors) == 0:
+            return 1000
+        for child in successors:
             evaluation = minimax(child, depth - 1, 1)
             if evaluation < value:
                 value = evaluation
         return value
 
 
+def PlayerMove(table: Table, player: int):
+    mutareInvalida = True
+    while mutareInvalida:
+        mutareInvalida = False
+        str_moves = input('Introdu mutarea (ex: 22->33[->42...]):')
+        moves = str_moves.split('->')
+        si = sj = -1
+        new_table = copy.deepcopy(table)
+        for move in moves:
+            if len(move) != 2:
+                mutareInvalida = True
+                break
+            ei = int(move[0]) - 1
+            ej = int(move[1]) - 1
+            if ei < 0 or ei > 7 or ej < 0 or ej > 7:
+                mutareInvalida = True
+                break
+            if si == -1 or sj == -1:
+                si = ei
+                sj = ej
+                continue
+            if ((player == 1 and new_table.config[si][sj] in [new_table.player1_sym, new_table.player1king_sym]) or
+               (player == 2 and new_table.config[si][sj] in [new_table.player2_sym, new_table.player2king_sym])) and \
+               new_table.config[ei][ej] == new_table.empty_sym:
+                    if abs(si - ei) == 1 and abs(sj - ej) == 1:
+                        new_table.config[ei][ej] = new_table.config[si][sj]
+                        new_table.config[si][sj] = new_table.empty_sym
+                    elif abs(si - ei) == 2 and abs(sj - ej) == 2:
+                        if player == 1 and new_table.config[(si + ei) // 2][(sj + ej) // 2] in [new_table.player2_sym, new_table.player2king_sym]:
+                                new_table.config[ei][ej] = new_table.config[si][sj]
+                                new_table.config[si][sj] = new_table.empty_sym
+                                new_table.config[(si + ei) // 2][(sj + ej) // 2] = new_table.empty_sym
+                        elif player == 2 and new_table.config[(si + ei) // 2][(sj + ej) // 2] in [new_table.player1_sym, new_table.player1king_sym]:
+                                new_table.config[ei][ej] = new_table.config[si][sj]
+                                new_table.config[si][sj] = new_table.empty_sym
+                                new_table.config[(si + ei) // 2][(sj + ej) // 2] = new_table.empty_sym
+                        else:
+                            mutareInvalida = True
+                            break
+                    else:
+                        mutareInvalida = True
+                        break
+            else:
+                mutareInvalida = True
+                break
+            si = ei
+            sj = ej
+            Move.checkKing(new_table)
+
+        # Verificare daca mutarea este valida
+        if mutareInvalida:
+            mutareInvalida = True
+            print('Mutare invalida!')
+            continue
+        if new_table in GameGraph.getSuccessors(table, player):
+            return new_table
+        print('Mutare invalida!')
+        mutareInvalida = True
+
+
 if __name__ == '__main__':
+    gamemode = 0
+    while True:
+        gamemode = int(input('Selecteaza modul de joc:\n1. Player vs Computer\n2. Player vs Player\n3. Computer vs Computer\n'))
+        if gamemode in [1, 2, 3]:
+            break
+        print('Input invalid!')
+
+    selected_algorithm = 0
+    while True:
+        selected_algorithm = int(input('Selecteaza algoritmul:\n1. Min-Max\n'))
+        if selected_algorithm in [1]:
+            break
+        print('Input invalid!')
+
+    depth = 0
+    if gamemode in [1, 3]:
+        while True:
+            depth = int(input('Selecteaza dificultatea (adancimea arborelui de decizie) 1...10: '))
+            if depth > 0:
+                break
+            elif depth > 10:
+                print('Adancimea este prea mare! Daca ai un calculator puternic probabil poti sa scoti aceasta limitare din cod, dar realistic vorbind o sa iti ia calculatorul foc pana se termina de calculat urmatoarea mutare a calculatorului.')
+            else:
+                print('Input invalid!')
+
+    personIsPlayer = 0
+    if gamemode == 1:
+        while True:
+            personIsPlayer = int(input('Selecteaza cu ce joci:\n1. Verde (Player 1)\n2. Rosu (Player 2)\n'))
+            if personIsPlayer in [1, 2]:
+                break
+            print('Input invalid!')
+
+    # starting_config nu este validat!
     starting_config = [
         ['#', '#', '#', '#', '#', '#', '#', '#'],
         ['#', '#', '#', '#', '#', '#', '#', '#'],
@@ -301,39 +432,93 @@ if __name__ == '__main__':
         ['#', '#', '#', '#', '#', '#', '#', '#'],
         ['#', 'b', '#', '#', '#', '#', '#', '#'],
         ['a', '#', 'a', '#', '#', '#', '#', '#']
-        ]
+    ]
+
+    sc = [
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', 'b', '#', 'b', '#', 'b', '#', 'b'],
+        ['b', '#', 'b', '#', 'b', '#', 'b', '#'],
+        ['#', 'a', '#', 'a', '#', 'a', '#', 'a'],
+        ['a', '#', 'a', '#', 'a', '#', 'a', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['a', '#', '#', '#', '#', '#', '#', '#']
+    ]
+
+    sc2 = [
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', 'b', '#', 'b', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['a', '#', '#', '#', '#', '#', '#', '#']
+    ]
+
+    custom_config = [
+        ['#', '#', '#', '#', '#', '#', '#', 'b'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['#', 'a', '#', '#', '#', '#', '#', 'b'],
+        ['#', '#', 'b', '#', 'b', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#', '#'],
+        ['b', '#', 'a', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', 'a', '#', '#', '#', '#'],
+        ['a', '#', 'a', '#', 'B', '#', '#', '#']
+    ]
 
     game = GameGraph('a', 'A', 'b', 'B', '#')
     currentState = game.starting_table
     currentState.printTable()
     print()
-    for i in range(50):
+
+    start_clock = datetime.now()
+    while True:
+        print(TerminalColors.CYAN + 'Player 1 Turn' + TerminalColors.END)
+
+        newState = None
         value = -1005
-        newState = None
-        for child in GameGraph.getSuccessors(currentState, 1):
-            evaluation = minimax(child, 6, 2)
-            if evaluation > value:
-                value = evaluation
-                newState = child
+        if (gamemode == 1 and personIsPlayer == 1) or gamemode == 2:
+            newState = PlayerMove(currentState, 1)
+        else:
+            for child in GameGraph.getSuccessors(currentState, 1):
+                evaluation = minimax(child, depth, 2)
+                if evaluation > value:
+                    value = evaluation
+                    newState = child
+
         currentState = newState
         currentState.printTable()
-        print(value)
-        if currentState.evaluatePlayerAdvantage() in [1000, -1000]:
+        if value != -1005:
+            print('Evaluare pozitie: ', value)
+        if (currentState.evaluatePlayerAdvantage() in [1000, -1000]
+                or len(GameGraph.getSuccessors(currentState, 2)) == 0):
+            print(TerminalColors.CYAN + 'Player 1 a castigat!' + TerminalColors.END)
             break
-        print('------------------')
 
+        print('------------------')
+        print(TerminalColors.CYAN + 'Player 2 Turn' + TerminalColors.END)
+
+        newState = None
         value = 1005
-        newState = None
-        for child in GameGraph.getSuccessors(currentState, 2):
-            evaluation = minimax(child, 6, 1)
-            if evaluation < value:
-                value = evaluation
-                newState = child
+        if (gamemode == 1 and personIsPlayer == 2) or gamemode == 2:
+            newState = PlayerMove(currentState, 2)
+        else:
+            for child in GameGraph.getSuccessors(currentState, 2):
+                evaluation = minimax(child, depth, 1)
+                if evaluation < value:
+                    value = evaluation
+                    newState = child
+
         currentState = newState
         currentState.printTable()
-        print(value)
-        if currentState.evaluatePlayerAdvantage() in [1000, -1000]:
+        if value != 1005:
+            print('Evaluare pozitie: ', value)
+        if (currentState.evaluatePlayerAdvantage() in [1000, -1000]
+                or len(GameGraph.getSuccessors(currentState, 1)) == 0):
+            print(TerminalColors.CYAN + 'Player 2 a castigat!' + TerminalColors.END)
             break
         print('------------------')
 
-
+    end_clock = datetime.now()
+    print('Timp joc: ', end_clock - start_clock)
