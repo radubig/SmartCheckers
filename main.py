@@ -407,12 +407,12 @@ if __name__ == '__main__':
     if gamemode in [1, 3]:
         while True:
             depth = int(input('Selecteaza dificultatea (adancimea arborelui de decizie) 1...10: '))
-            if depth > 0:
-                break
-            elif depth > 10:
+            if depth > 10:
                 print('Adancimea este prea mare! Daca ai un calculator puternic probabil poti sa scoti aceasta limitare din cod, dar realistic vorbind o sa iti ia calculatorul foc pana se termina de calculat urmatoarea mutare a calculatorului.')
-            else:
+            elif depth < 1:
                 print('Input invalid!')
+            else:
+                break
 
     personIsPlayer = 0
     if gamemode == 1:
