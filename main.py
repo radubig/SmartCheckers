@@ -14,6 +14,7 @@ class TerminalColors:
     UNDERLINE = '\033[4m'
 
 
+# Clasa Table reprezinta un nod in arborele de decizie (stare a jocului)
 class Table:
     def __init__(self, player1_sym, player1king_sym, player2_sym, player2king_sym, empty_sym, config=None):
         self.player1_sym = str(player1_sym)
@@ -46,7 +47,12 @@ class Table:
     def __eq__(self, other):
         return self.config == other.config
 
-    # Calculate the advantage of pieces of player 1
+    '''Aceasta metoda estimeaza scorul primului jucator.
+    Daca scorul e pozitiv, atunci primul jucator este avantajat; daca scorul e negativ, atunci al doilea jucator este avantajat.
+    Scorul este calculat ca diferenta dintre numarul de piese ale primului jucator si numarul de piese ale celui de-al doilea jucator.
+    O piesa normala valoreaza un punct, iar o piesa rege valoreaza doua puncte.
+    Daca un jucator nu mai are piese, atunci celalalt jucator castiga.
+    '''
     def evaluatePlayerAdvantage(self):
         p1 = p2 = 0
         for row in self.config:
@@ -66,6 +72,30 @@ class Table:
             return 1000
         return p1 - p2
 
+    # Metoda alternativa de estimare a scorului
+    def evaluatePlayerAdvantage2(self):
+        p1 = p2 = 0
+        for row in self.config:
+            for cell in row:
+                if cell == self.player1_sym:
+                    p1 += 1
+                elif cell == self.player1king_sym:
+                    p1 += 3
+                elif cell == self.player2_sym:
+                    p2 += 1
+                elif cell == self.player2king_sym:
+                    p2 += 3
+        if p1 == 0:
+            return -1000
+        elif p2 == 0:
+            return 1000
+        abs = 0
+        if p1 > p2:
+            abs = p1 / p2
+        else:
+            abs = p2 / p1
+        return (p1 - p2) * abs
+
     def printTable(self):
         content = str(self)
         for c in content:
@@ -77,7 +107,9 @@ class Table:
                 print(c, end='')
 
 
+# Clasa move contine metodele de mutare a pieselor
 class Move:
+    # Metoda checkKing verifica daca o piesa a ajuns in capatul opus al tablei si o transforma in rege
     @staticmethod
     def checkKing(table: Table):
         for i in range(8):
@@ -187,10 +219,12 @@ class Move:
         return None
 
 
+# Clasa GameGraph reprezinta arborele de decizie al jocului
 class GameGraph:
     def __init__(self, player1_sym, player1king_sym, player2_sym, player2king_sym, empty_sym, starting_config=None):
         self.starting_table = Table(player1_sym, player1king_sym, player2_sym, player2king_sym, empty_sym, starting_config)
 
+    # Aceasta metoda determina toate mutarile prin saritura pe care le poate face un jucator
     @staticmethod
     def getJumpSuccessors(table: Table, player: int, capturingPiece=None):
         succ = []
@@ -247,6 +281,7 @@ class GameGraph:
                             succ.append((Move.jumpUpperRight(table, i, j, [table.player1_sym, table.player1king_sym]), (i-2, j+2)))
         return succ
 
+    # Aceasta metoda determina toate mutarile simple pe care le poate face un jucator
     @staticmethod
     def getMoveSuccessors(table: Table, player: int):
         succ = list[Table]()
@@ -277,6 +312,10 @@ class GameGraph:
                                 succ.append(Move.moveUpperRight(table, i, j))
         return succ
 
+    '''Aceasta metoda genereaza toate mutarile pe care le poate face un jucator.
+    Mai intai se verifica daca jucatorul poate face cel putin o saritura, caz in care este fortat sa faca o saritura.
+    Daca jucatorul are posibilitatea sa faca o saritura in lant, atunci jucatorul va trebui sa aleaga o mutare care sa captureze cele mai multe piese.
+    Altfel, jucatorul trebuie sa faca o mutare simpla.'''
     @staticmethod
     def getSuccessors(table: Table, player: int):
         succ = GameGraph.getJumpSuccessors(table, player)
@@ -302,6 +341,8 @@ class GameGraph:
         return succ
 
 
+''' Pentru euristica se foloseste metoda de calcul a scorului jucatorului.
+In plus, daca un jucator ramane fara mutari, atunci celalalt jucator castiga.'''
 def minimax(node: Table, depth: int, player: int):
     playerAdvantage = node.evaluatePlayerAdvantage()
     if depth == 0 or playerAdvantage == 1000 or playerAdvantage == -1000:
@@ -328,6 +369,7 @@ def minimax(node: Table, depth: int, player: int):
         return value
 
 
+# Aceasta functie parseaza mutarea facuta de un jucator
 def PlayerMove(table: Table, player: int):
     mutareInvalida = True
     while mutareInvalida:

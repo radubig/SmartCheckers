@@ -13,15 +13,14 @@
   - [x] Castigator, timp de joc
 - [x] Generarea succesorilor
 - [x] Testarea starii finale + castigator
-- [ ] 2 moduri diferite de estimare a scorului (1/2)
+- [x] 2 moduri diferite de estimare a scorului
 - [x] Min-Max / Alpha-Beta
-- [ ] A* / IDA*
-- [ ] Retele Bayesiene
-- [ ] Claritatea codului
-  - [ ] Parametrii invalizi
-- [ ] Comentarii
-  - [ ] Documentare functii
-  - [ ] Documentare algoritm de generare a mutarilor
-  - [ ] Explicare estimare scor
-  - [ ] Explicare eursitica MAX
-- [ ] Chestii bonus
+- [x] A* / IDA*
+- [ ] ~~Retele Bayesiene~~
+- [x] Claritatea codului
+- [x] Comentarii
+  - [x] Documentare functii
+  - [x] Documentare algoritm de generare a mutarilor
+  - [x] Explicare estimare scor
+  - [x] Explicare eursitica MAX
+- [x] Chestii bonus - culori in terminal
